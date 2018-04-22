@@ -110,7 +110,7 @@ public class Transaction {
             for (int i = 0; i < addressBytes.length; i++)
                 sigData.add(addressBytes[i]);
         }
-        byte[] sigD = new byte[sigData.size()];
+        byte[] sigD = new byte[sigData.size()]; 
         int i = 0;
         for (Byte sb : sigData)
             sigD[i++] = sb;

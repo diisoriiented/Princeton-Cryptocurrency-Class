@@ -1,3 +1,7 @@
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Set;
+
 public class TxHandler {
 
     /**
@@ -5,8 +9,12 @@ public class TxHandler {
      * {@code utxoPool}. This should make a copy of utxoPool by using the UTXOPool(UTXOPool uPool)
      * constructor.
      */
+    public UTXOPool ledger;
+    public UTXOPool ledger_copy;
+
     public TxHandler(UTXOPool utxoPool) {
-        // IMPLEMENT THIS
+        this.ledger_copy = new UTXOPool(utxoPool);
+        this.ledger = utxoPool;
     }
 
     /**
@@ -19,16 +27,43 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        // IMPLEMENT THIS
+        return (checkInputs(tx));
     }
 
-    /**
+    /**     
      * Handles each epoch by receiving an unordered array of proposed transactions, checking each
      * transaction for correctness, returning a mutually valid array of accepted transactions, and
      * updating the current UTXO pool as appropriate.
      */
-    public Transaction[] handleTxs(Transaction[] possibleTxs) {
+    /*public Transaction[] handleTxs(Transaction[] possibleTxs) {
         // IMPLEMENT THIS
-    }
+    }*/
 
+    /*
+        Verfies that all inputs to TX are in the UTXO Pool
+    */
+    private boolean checkInputs(Transaction tx){
+        ArrayList<Transaction.Input> inputs = tx.getInputs();
+        ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
+        int numSatisfiedInputs = 0;
+        for ( Transaction.Input input : inputs){
+            byte[] hash = input.prevTxHash;
+            for (UTXO utxo : UTXOs){
+                boolean areEqual = false;
+                byte[] utxo_hash = utxo.getTxHash();
+                for (int i = 0; i<hash.length; i++){
+                    if (hash[i] != utxo_hash[i]) break;
+                    areEqual = true;
+                }
+                if (areEqual){
+                    numSatisfiedInputs++;
+                    break;
+                } 
+            }
+        }
+        if (numSatisfiedInputs == tx.numInputs()) {
+            return true;
+        }
+        return false;
+    }
 }
