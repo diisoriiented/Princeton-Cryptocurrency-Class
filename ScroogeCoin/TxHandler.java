@@ -27,7 +27,7 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        return (checkInputs(tx));
+        return (checkInputs(tx) && checkSigs(tx));
     }
 
     /**     
@@ -61,9 +61,44 @@ public class TxHandler {
                 } 
             }
         }
-        if (numSatisfiedInputs == tx.numInputs()) {
-            return true;
-        }
+        if (numSatisfiedInputs == tx.numInputs()) return true;
         return false;
     }
+
+    /*
+        Verifies the signatures of all inputs of tx by verifying signing the data with the public key of the output
+    */
+    private boolean checkSigs(Transaction tx){
+        ArrayList<Transaction.Input> inputs = tx.getInputs();
+        ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
+        int valid_sigs = 0;
+        for (Transaction.Input input : inputs){
+            byte[] sig = input.signature;
+            byte[] message = tx.getRawDataToSign(input.outputIndex);
+            for ( UTXO utxo : UTXOs){
+                Transaction.Output out = ledger.getTxOutput(utxo);
+                if( Crypto.verifySignature(out.address, message, sig) ){
+                    valid_sigs++;
+                    break;
+                }
+            }
+        }
+        if(valid_sigs == tx.numInputs()) return true;
+        return false;
+    }
+
+    /*
+        Iterates through the list of UTXOs and checks for duplicates
+    */
+    /*private boolean checkMultUTXO(){
+        ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
+        for ( int i = 0; i < UTXOs.size(); i++){
+            UTXO utxo = UTXOs.get(i);
+            for (int j = 1; j < UTXOs.size(); j++){
+                UTXO utxo2 = UTXOs.get(j);
+                if(utxo.equals(utxo2)) return false;
+            }
+        }
+        return true;
+    }*/
 }
