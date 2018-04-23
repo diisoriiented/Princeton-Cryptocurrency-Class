@@ -2,6 +2,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Set;
 
+/*
+    ScroogeCoin Transaction Handler class
+    CREATED AND CODED BY Diisoriiented 4/22/2018
+    Questions? Email me at diis.cybersec@gmail.com
+
+    Coded for: https://www.coursera.org/learn/cryptocurrency/home/
+*/
 public class TxHandler {
 
     /**
@@ -35,9 +42,28 @@ public class TxHandler {
      * transaction for correctness, returning a mutually valid array of accepted transactions, and
      * updating the current UTXO pool as appropriate.
      */
-    /*public Transaction[] handleTxs(Transaction[] possibleTxs) {
-        // IMPLEMENT THIS
-    }*/
+    public Transaction[] handleTxs(Transaction[] possibleTxs) {
+        ArrayList<Transaction> acceptedTxs = new ArrayList<Transaction>();
+        for (Transaction tx : possibleTxs){
+            if(isValidTx(tx)){
+                acceptedTxs.add(tx);
+                byte[] hash = tx.getHash();
+                ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
+                for (UTXO utxo : UTXOs){
+                    boolean areEqual = false;
+                    byte[] utxo_hash = utxo.getTxHash();
+                    for (int i = 0; i<hash.length; i++){
+                        if (hash[i] != utxo_hash[i]) break;
+                        areEqual = true;
+                    }
+                    if (areEqual = true){
+                        ledger.removeUTXO(utxo);
+                    }
+                }
+            }
+        }
+        return acceptedTxs.toArray(new Transaction[acceptedTxs.size()]);
+    }
 
     /*
         Verfies that all inputs to TX are in the UTXO Pool
@@ -113,6 +139,10 @@ public class TxHandler {
         return true;
     }
 
+
+    /*
+        Iterates over TX outputs and corresponding UTXO outputs and sums their values to make sure they are identical.
+    */
     private boolean checkValues(Transaction tx){
         ArrayList<Transaction.Input> inputs = tx.getInputs();
         ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
@@ -148,6 +178,4 @@ public class TxHandler {
         if(input_sum >= output_sum) return true;
         return false;
     }
-
-
 }

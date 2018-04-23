@@ -1,4 +1,4 @@
-//Taken from: https://github.com/keskival/cryptocurrency-course-materials/blob/master/assignment1/Main.java
+//ADAPTED from: https://github.com/keskival/cryptocurrency-course-materials/blob/master/assignment1/Main.java
 
 import java.math.BigInteger;
 import java.security.*;
@@ -24,9 +24,9 @@ class Main{
 
 		UTXOPool utxoPool = new UTXOPool();
 		UTXO utxo = new UTXO(tx.getHash(), 0);
-		UTXO utxo2 = new UTXO(tx.getHash(), 1);
+		//UTXO utxo2 = new UTXO(tx.getHash(), 1);
 		utxoPool.addUTXO(utxo, tx.getOutput(0));
-		utxoPool.addUTXO(utxo2, tx.getOutput(0));
+		//utxoPool.addUTXO(utxo2, tx.getOutput(0));
 
 		Tx tx2 = new Tx();
 
@@ -49,6 +49,7 @@ class Main{
 		//System.out.println("Does my functions work? Function returns: " + txHandler.checkInputs(tx2));
 		//System.out.println("Is Scrooges signature valid?? Function returns: " + txHandler.checkSigs(tx2));
 		System.out.println("Combined function calls returns: "+txHandler.isValidTx(tx2));
+		System.out.println("txHandler.handleTxs(new Transaction[]{tx2}) returns: " + txHandler.handleTxs(new Transaction[]{tx2}).length + " transaction(s)");
 
 	}
 
