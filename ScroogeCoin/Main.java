@@ -24,9 +24,9 @@ class Main{
 
 		UTXOPool utxoPool = new UTXOPool();
 		UTXO utxo = new UTXO(tx.getHash(), 0);
-		UTXO utxo2 = new UTXO(tx.getHash(), 1);
+		//UTXO utxo2 = new UTXO(tx.getHash(), 1);
 		utxoPool.addUTXO(utxo, tx.getOutput(0));
-		utxoPool.addUTXO(utxo2, tx.getOutput(0));
+		//utxoPool.addUTXO(utxo2, tx.getOutput(0));
 
 		Tx tx2 = new Tx();
 

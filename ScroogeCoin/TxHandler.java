@@ -27,7 +27,7 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        return (checkInputs(tx) && checkSigs(tx));
+        return (checkInputs(tx) && checkSigs(tx) && checkMultUTXO(tx));
     }
 
     /**     
@@ -88,17 +88,28 @@ public class TxHandler {
     }
 
     /*
-        Iterates through the list of UTXOs and checks for duplicates
+        Iterates through inputs and the list of UTXOs and checks for multiple transaction values 
     */
-    /*private boolean checkMultUTXO(){
+    private boolean checkMultUTXO(Transaction tx){
+        ArrayList<Transaction.Input> inputs = tx.getInputs();
         ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
-        for ( int i = 0; i < UTXOs.size(); i++){
-            UTXO utxo = UTXOs.get(i);
-            for (int j = 1; j < UTXOs.size(); j++){
-                UTXO utxo2 = UTXOs.get(j);
-                if(utxo.equals(utxo2)) return false;
+        int numTimes = 0;
+        for(Transaction.Input input : inputs){
+            byte[] hash = input.prevTxHash;
+            for(UTXO utxo : UTXOs){
+                boolean areEqual = false;
+                byte[] utxo_hash = utxo.getTxHash();
+                for (int i = 0; i<hash.length; i++){
+                    if (hash[i] != utxo_hash[i]) break;
+                    areEqual = true;
+                }
+                if (areEqual){
+                    numTimes++;
+                }
             }
+            if (numTimes > 1) return false;
+            numTimes = 0;
         }
         return true;
-    }*/
+    }
 }
