@@ -27,7 +27,7 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
-        return (checkInputs(tx) && checkSigs(tx) && checkMultUTXO(tx));
+        return (checkInputs(tx) && checkSigs(tx) && checkMultUTXO(tx) && checkValues(tx));
     }
 
     /**     
@@ -112,4 +112,42 @@ public class TxHandler {
         }
         return true;
     }
+
+    private boolean checkValues(Transaction tx){
+        ArrayList<Transaction.Input> inputs = tx.getInputs();
+        ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
+        ArrayList<Transaction.Output> outs = tx.getOutputs();
+        double input_sum = 0;
+        double output_sum =0;
+
+        for (Transaction.Output out : outs){
+            if(out.value < 0) return false;
+            output_sum += out.value;
+        }
+
+        UTXO matching_utxo;
+
+        for(Transaction.Input input : inputs){
+            byte[] hash = input.prevTxHash;
+            boolean areEqual = true;
+
+            for(UTXO utxo : UTXOs){
+                byte[] utxo_hash = utxo.getTxHash();
+                for (int i = 0; i<hash.length; i++){
+                    if (hash[i] != utxo_hash[i]) break;
+                }
+                if (areEqual){
+                matching_utxo = utxo;
+                Transaction.Output matching_input = ledger.getTxOutput(matching_utxo);
+                if (matching_input.value < 0) return false;
+                input_sum += matching_input.value;
+                }
+            } 
+        }
+        //System.out.println("input sum: " + input_sum + " output sum: " + output_sum);
+        if(input_sum >= output_sum) return true;
+        return false;
+    }
+
+
 }
