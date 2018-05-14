@@ -18,6 +18,7 @@ public class TxHandler {
      */
     public UTXOPool ledger;
     public UTXOPool ledger_copy;
+    public int testNumber = 0;
 
     public TxHandler(UTXOPool utxoPool) {
         this.ledger_copy = new UTXOPool(utxoPool);
@@ -34,6 +35,15 @@ public class TxHandler {
      *     values; and false otherwise.
      */
     public boolean isValidTx(Transaction tx) {
+        System.out.println("checkInputs returns: " + checkInputs(tx));
+        System.out.flush();
+        System.out.println("checkSigs returns: " + checkSigs(tx));
+        System.out.flush();
+        System.out.println("checkMultUTXO returns: " + checkMultUTXO(tx));
+        System.out.flush();
+        System.out.println("checkValues returns: " + checkValues(tx));
+        System.out.flush();
+
         return (checkInputs(tx) && checkSigs(tx) && checkMultUTXO(tx) && checkValues(tx));
     }
 
@@ -92,12 +102,48 @@ public class TxHandler {
     }
 
     /*
-        Verifies the signatures of all inputs of tx by verifying signing the data with the public key of the output
+        Verifies the signatures of all inputs of tx by signing the data with the public key of the output
     */
     private boolean checkSigs(Transaction tx){
         ArrayList<Transaction.Input> inputs = tx.getInputs();
         ArrayList<UTXO> UTXOs = ledger.getAllUTXO();
         int valid_sigs = 0;
+        int num_inputs = tx.numInputs();
+        //System.out.println("Number of inputs: " + num_inputs);
+        for (UTXO utxo : UTXOs){
+            byte[] utxo_hash = utxo.getTxHash();
+            for(Transaction.Input input : inputs){
+                //System.out.println("UTXO output: "+utxo.getIndex()+"Input outputindex: "+input.outputIndex);
+                if (input.outputIndex != utxo.getIndex()) continue;
+                boolean matching_tx = false;
+                byte[] input_hash = input.prevTxHash;
+                for (int i = 0; i<input_hash.length; i++){
+                    if (input_hash[i] != utxo_hash[i]){
+                        matching_tx = false;
+                        break;
+                    }else{
+                        matching_tx = true;
+                    }
+                }
+                if (matching_tx){
+                    //System.out.println("Found matching TX in UTXOPool");
+                    byte[] sig = input.signature;
+                    byte[] message = tx.getRawDataToSign(input.outputIndex);
+                    Transaction.Output out = ledger.getTxOutput(utxo);
+                    /*System.out.println("Is sig null: "+ sig == null);
+                    System.out.println("Is message null: "+message == null);
+                    System.out.println("Is address null: " + out.address == null);*/
+                    if (Crypto.verifySignature(out.address,message, sig)){
+                        valid_sigs++;
+                    }
+                }
+            }
+        }
+        if (valid_sigs == tx.numInputs()) return true;
+        return false;
+    }
+
+    /*
         for (Transaction.Input input : inputs){
             byte[] sig = input.signature;
             byte[] message = tx.getRawDataToSign(input.outputIndex);
@@ -111,7 +157,7 @@ public class TxHandler {
         }
         if(valid_sigs == tx.numInputs()) return true;
         return false;
-    }
+    }*/
 
     /*
         Iterates through inputs and the list of UTXOs and checks for multiple transaction values 
@@ -123,6 +169,9 @@ public class TxHandler {
         for(Transaction.Input input : inputs){
             byte[] hash = input.prevTxHash;
             for(UTXO utxo : UTXOs){
+                for( int i = 1; i < UTXOs.size(); i++){
+                    if(utxo.equals(UTXOs.get(i))) break;
+                }
                 boolean areEqual = false;
                 byte[] utxo_hash = utxo.getTxHash();
                 for (int i = 0; i<hash.length; i++){
